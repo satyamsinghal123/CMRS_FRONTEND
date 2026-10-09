@@ -1,0 +1,5 @@
+import {useEffect,useState} from "react"
+import api from "../api"
+import Status from "../components/Status"
+function money(v){return `₹${Number(v||0).toLocaleString("en-IN",{maximumFractionDigits:2})}`}
+export default function Deposits(){const[list,setList]=useState([]);async function load(){const r=await api.get("/deposits/");setList(r.data.results||r.data)}useEffect(()=>{load().catch(()=>{})},[]);async function settle(id){const x=list.find(a=>a.id===id);await api.post(`/deposits/${id}/mark-settled/`,{settled_amount:x?.amount});load()}return <><div className="page-title"><div><span className="eyebrow">Banking</span><h2>Bank deposits</h2></div></div><div className="panel table-panel"><table><thead><tr><th>Deposit</th><th>Bank reference</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>{list.map(x=><tr key={x.id}><td>{x.deposit_number}</td><td>{x.bank_reference}</td><td>{money(x.amount)}</td><td>{x.deposit_date}</td><td><Status value={x.status}/></td><td>{x.status!=="SETTLED"&&<button className="small success" onClick={()=>settle(x.id)}>Settle</button>}</td></tr>)}</tbody></table></div></>}
